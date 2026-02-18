@@ -1056,6 +1056,10 @@ export type KeybindsConfig = {
    */
   session_delete?: string
   /**
+   * Stash current prompt
+   */
+  stash_push?: string
+  /**
    * Delete stash entry
    */
   stash_delete?: string

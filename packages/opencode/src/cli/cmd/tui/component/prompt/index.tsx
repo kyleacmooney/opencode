@@ -472,6 +472,7 @@ export function Prompt(props: PromptProps) {
     {
       title: "Stash prompt",
       value: "prompt.stash",
+      keybind: "stash_push",
       category: "Prompt",
       enabled: !!store.prompt.input,
       onSelect: (dialog) => {
