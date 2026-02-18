@@ -1,5 +1,5 @@
 import { Prompt, type PromptRef } from "@tui/component/prompt"
-import { createMemo, Match, onMount, Show, Switch } from "solid-js"
+import { createEffect, createMemo, Match, onMount, Show, Switch } from "solid-js"
 import { useTheme } from "@tui/context/theme"
 import { useKeybind } from "@tui/context/keybind"
 import { Logo } from "../component/logo"
@@ -14,6 +14,7 @@ import { usePromptRef } from "../context/prompt"
 import { Installation } from "@/installation"
 import { useKV } from "../context/kv"
 import { useCommandDialog } from "../component/dialog-command"
+import { useLocal } from "@tui/context/local"
 
 // TODO: what is the best way to do this?
 let once = false
@@ -76,16 +77,25 @@ export function Home() {
 
   let prompt: PromptRef
   const args = useArgs()
+  const local = useLocal()
   onMount(() => {
     if (once) return
     if (route.initialPrompt) {
       prompt.set(route.initialPrompt)
       once = true
-    } else if (args.prompt) {
-      prompt.set({ input: args.prompt, parts: [] })
-      once = true
-      prompt.submit()
     }
+  })
+  // Use createEffect to wait for model.json to load before auto-submitting
+  // so that the recent model history is available for model resolution.
+  // Without this, --prompt auto-submit races against the async model.json
+  // read and falls through to the first provider's default model.
+  createEffect(() => {
+    if (once) return
+    if (!local.model.ready) return
+    if (!args.prompt) return
+    prompt.set({ input: args.prompt, parts: [] })
+    once = true
+    prompt.submit()
   })
   const directory = useDirectory()
 
